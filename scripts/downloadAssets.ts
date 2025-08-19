@@ -21,11 +21,17 @@ const imageProcess = async (
   console.log(`start - ${url}`);
 
   try {
-    const { data } = await queue.add(() =>
+    const response = await queue.add(() =>
       axios.get(encodeURI(url), {
         responseType: isSharp ? "arraybuffer" : undefined,
       })
     );
+
+    if (!response) {
+      throw new Error("No response from queue");
+    }
+
+    const { data } = response;
 
     if (isSharp) {
       const imageBuffer = await sharp(data).jpeg({ mozjpeg: true }).toBuffer();
@@ -34,7 +40,7 @@ const imageProcess = async (
       fs.writeFile(path, data);
     }
   } catch (error) {
-    if (axios.isAxiosError(error) && error.response.status === 404) {
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
       console.log(`skip(404) - ${url}`);
     } else {
       Promise.reject(error);

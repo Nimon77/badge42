@@ -1,4 +1,4 @@
-import type { PrismaClient, Prisma } from "@prisma/client";
+import type { PrismaClient } from "@prisma/client";
 import type { Adapter } from "next-auth/adapters";
 
 export function PrismaAdapter(p: PrismaClient): Adapter {
@@ -16,14 +16,14 @@ export function PrismaAdapter(p: PrismaClient): Adapter {
     updateUser: ({ id, ...data }) => p.user.update({ where: { id }, data }),
     deleteUser: (id) => p.user.delete({ where: { id } }),
     linkAccount: async (data) => {
-      const account = await p.account.create({
+      const account = (await p.account.create({
         data: {
           provider: data.provider,
           providerAccountId: data.providerAccountId,
           type: data.type,
           userId: data.userId,
         },
-      }) as any;
+      })) as any;
 
       if (data.provider === "42-school") {
         await p.user.update({
@@ -67,11 +67,10 @@ export function PrismaAdapter(p: PrismaClient): Adapter {
         const { id: _, ...verificationToken } =
           await p.verificationToken.delete({ where: { identifier_token } });
         return verificationToken;
-      } catch (error) {
+      } catch (error: any) {
         // If token already used/deleted, just return null
         // https://www.prisma.io/docs/reference/api-reference/error-reference#p2025
-        if ((error as Prisma.PrismaClientKnownRequestError).code === "P2025")
-          return null;
+        if (error.code === "P2025") return null;
         throw error;
       }
     },

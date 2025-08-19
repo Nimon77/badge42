@@ -20,7 +20,9 @@ export const AuthContext = React.createContext<
   status: "loading",
 });
 
-export type AuthProviderProps = {};
+export interface AuthProviderProps {
+  children: React.ReactNode;
+}
 
 const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const { data: session } = useSession();

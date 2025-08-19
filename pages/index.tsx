@@ -8,7 +8,7 @@ import { useContext } from "react";
 import axios from "axios";
 import getCoalitions from "../lib/getCoalitions";
 import ProjectScore from "../components/badge/ProjectScore";
-import Config from "next.config"
+import Config from "next.config";
 
 const StatsWrapper = ({ data }: StatsProps) => {
   const [isShow, setIsShow] = useState(false);

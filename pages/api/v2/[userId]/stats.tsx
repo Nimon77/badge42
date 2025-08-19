@@ -8,12 +8,12 @@ import {
   updateUserExtends42Data,
   UserNotFound,
 } from "../../../../lib/updateUserExtends42Data";
-import Config from "next.config"
+import Config from "../../../../next.config";
 
 // 12hour
 const EXPIRE_TIME = 12 * 60 * 60;
 
-const BASE_URL = Config.env.base_url;
+const BASE_URL = Config.env?.base_url || "https://badge.nimon.fr";
 
 class FTAccountNotLinked extends Error {
   constructor() {
@@ -54,10 +54,10 @@ const GetHandler = async (req: NextApiRequest, res: NextApiResponse) => {
         (cursus_user.cursus.slug.includes("piscine")
           ? "piscine"
           : user.extended42Data.coalitions.length
-          ? user.extended42Data.coalitions[
-              user.extended42Data.coalitions.length - 1
-            ].id.toString()
-          : "undefined"),
+            ? user.extended42Data.coalitions[
+                user.extended42Data.coalitions.length - 1
+              ].id.toString()
+            : "undefined"),
       user.extended42Data.coalitions,
       BASE_URL
     );
@@ -78,7 +78,9 @@ const GetHandler = async (req: NextApiRequest, res: NextApiResponse) => {
     const [logo, cover] = await Promise.all([
       getBase64ImageFromUrl(encodeURI(coalition.image_url)),
       getBase64ImageFromUrl(
-        coalition.cover_url ? encodeURI(coalition.cover_url) : `${BASE_URL}/assets/cover/default.jpg`
+        coalition.cover_url
+          ? encodeURI(coalition.cover_url)
+          : `${BASE_URL}/assets/cover/default.jpg`
       ),
     ]);
 

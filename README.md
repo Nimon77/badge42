@@ -27,16 +27,16 @@ nsimon's 42 C Piscine Final Exam Score - [![nsimon's 42 C Piscine Final Exam Sco
 3. Create 42 Intra API access and Github API access.
 4. Edit [.env.sample](./.env.sample) file and rename .env.
 5. Edit [next.config.js](./next.config.js) file with your URL app.
-6. `yarn install && yarn db:generate && yarn db:push && yarn build && yarn start` or use Dockerfile and docker-compose.yml (For docker hosting run `yarn db:push` after container run). 
+6. `yarn install && yarn db:generate && yarn db:push && yarn build && yarn start` or use Dockerfile and docker-compose.yml (For docker hosting run `yarn db:push` after container run).
 7. Go to your url app and sign in!
-8. Generate code snippet for your profile card 
+8. Generate code snippet for your profile card
 9. Copy-paste this into your markdown content, and that's it. Simple 🥳
 
 ## Original Contributors ✨
 
 Special thanks original creator :
-<td align="center"><a href="https://github.com/JaeSeoKim"><img src="https://avatars.githubusercontent.com/u/48559454?v=4" width="100px;" alt=""/><br /><sub><b>JaeSeoKim</b></sub></a> <a href="https://github.com/JaeSeoKim" title="Creator">💻</a></td>
 
+<td align="center"><a href="https://github.com/JaeSeoKim"><img src="https://avatars.githubusercontent.com/u/48559454?v=4" width="100px;" alt=""/><br /><sub><b>JaeSeoKim</b></sub></a> <a href="https://github.com/JaeSeoKim" title="Creator">💻</a></td>
 
 And thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
 
