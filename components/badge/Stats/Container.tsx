@@ -39,7 +39,15 @@ const Container: React.FC<ContainerProps> = ({
       />
       <g>
         <g filter="url(#container_shadow)">
-          <rect x="4" y="5" width="492" height={height} rx="5" fill="black" fillOpacity="0.25" />
+          <rect
+            x="4"
+            y="5"
+            width="492"
+            height={height}
+            rx="5"
+            fill="black"
+            fillOpacity="0.25"
+          />
         </g>
         <rect x="5" y="5" width="490" height={height} rx="5" fill={color} />
         <rect

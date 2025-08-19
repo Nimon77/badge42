@@ -40,7 +40,7 @@ const Code: React.FC<CodeProps> = ({ code }) => {
       <div className="items-center bg-neutral-100 p-3 rounded overflow-y-hidden hover:overflow-y-auto">
         <code className="font-mono text-xs whitespace-nowrap">{code}</code>
       </div>
-      <button 
+      <button
         onClick={handleCopy}
         className="hidden group-hover:block transition-colors absolute right-2 top-2 p-2 border shadow rounded bg-neutral-100 hover:bg-neutral-50"
       >

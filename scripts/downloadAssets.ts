@@ -26,11 +26,11 @@ const imageProcess = async (
         responseType: isSharp ? "arraybuffer" : undefined,
       })
     );
-    
+
     if (!response) {
       throw new Error("No response from queue");
     }
-    
+
     const { data } = response;
 
     if (isSharp) {

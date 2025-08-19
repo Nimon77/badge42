@@ -1,9 +1,9 @@
 import { SiGithub } from "@icons-pack/react-simple-icons";
 import LoginButton from "./LoginButton";
 
-export interface LoginButtonGithubProps { 
-  onClick: () => void; 
-  disable?: boolean; 
+export interface LoginButtonGithubProps {
+  onClick: () => void;
+  disable?: boolean;
 }
 
 const LoginButtonGithub = ({ onClick, disable }: LoginButtonGithubProps) => (

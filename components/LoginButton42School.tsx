@@ -1,9 +1,9 @@
 import { Si42 } from "@icons-pack/react-simple-icons";
 import LoginButton from "./LoginButton";
 
-export interface LoginButton42SchoolProps { 
-  onClick: () => void; 
-  disable?: boolean; 
+export interface LoginButton42SchoolProps {
+  onClick: () => void;
+  disable?: boolean;
 }
 
 const LoginButton42School = ({
