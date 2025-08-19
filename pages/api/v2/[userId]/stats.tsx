@@ -8,7 +8,7 @@ import {
   updateUserExtends42Data,
   UserNotFound,
 } from "../../../../lib/updateUserExtends42Data";
-import Config from "next.config"
+import Config from "../../../../next.config"
 
 // 12hour
 const EXPIRE_TIME = 12 * 60 * 60;
