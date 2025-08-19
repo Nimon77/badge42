@@ -23,7 +23,7 @@ export const AuthContext = React.createContext<
 export type AuthProviderProps = {};
 
 const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
   const [auth, setAuth] = useState<
     | {
         status: "loading" | "unauthenticated";
@@ -39,6 +39,15 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   });
 
   const getMe = useCallback(async () => {
+    // Don't make API call if session is not authenticated
+    if (sessionStatus !== "authenticated" || !session?.user?.email) {
+      setAuth({
+        data: null,
+        status: "unauthenticated",
+      });
+      return;
+    }
+
     try {
       setAuth((prev) => ({
         ...prev,
@@ -60,7 +69,7 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        switch (error?.response.status) {
+        switch (error?.response?.status) {
           case 401:
           default:
             setAuth({
@@ -74,16 +83,23 @@ const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           data: null,
           status: "unauthenticated",
         });
-        console.error(error);
+        console.error("AuthProvider error:", error);
       }
     }
-  }, []);
+  }, [session?.user?.email, sessionStatus]);
 
   useEffect(() => {
-    if (session?.user?.email) {
+    if (sessionStatus === "loading") {
+      setAuth((prev) => ({ ...prev, status: "loading" }));
+    } else if (sessionStatus === "unauthenticated") {
+      setAuth({
+        data: null,
+        status: "unauthenticated",
+      });
+    } else if (sessionStatus === "authenticated" && session?.user?.email) {
       getMe();
     }
-  }, [session?.user?.email, getMe]);
+  }, [sessionStatus, session?.user?.email, getMe]);
 
   return <AuthContext.Provider value={auth}>{children}</AuthContext.Provider>;
 };

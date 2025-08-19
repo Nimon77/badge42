@@ -55,7 +55,9 @@ const SignInPage: NextPage = () => {
   }, []);
 
   useEffect(() => {
-    if (status === "unauthenticated") {
+    // Only redirect if user is authenticated, not unauthenticated
+    // This prevents infinite redirect loops
+    if (status === "authenticated") {
       router.push(callbackUrl);
     }
   }, [status, router, callbackUrl]);

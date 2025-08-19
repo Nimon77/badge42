@@ -1,6 +1,6 @@
 import collection from "lodash-es/collection";
 import prisma from "../db";
-import { Coalition, get42User, get42UserCoalition, User } from "./api/42api";
+import { Coalition, get42User, get42UserCoalition, User, clearUserCache } from "./api/42api";
 
 export type Extends42Data = User & {
   synced_at: number;
@@ -39,39 +39,50 @@ export const updateUserExtends42Data: (
   const accounts = collection.keyBy(user.accounts, "provider");
   if (!accounts["42-school"]) return user;
 
-  // if (process.env.NODE_ENV === "production") {
-  const ExpiresDate = new Date();
-  ExpiresDate.setSeconds(ExpiresDate.getSeconds() + EXPIRE_TIME);
-  if (
-    user.extended42Data &&
-    (new Date(user.extended42Data.anonymize_date).valueOf() <= Date.now() ||
-      user.extended42Data.synced_at + EXPIRE_TIME * 1000 > Date.now())
-  ) {
+  // Check if user data needs updating
+  const now = Date.now();
+  const shouldUpdate = !user.extended42Data || 
+    new Date(user.extended42Data.anonymize_date).valueOf() <= now ||
+    user.extended42Data.synced_at + EXPIRE_TIME * 1000 <= now; // Use <= instead of > for consistency
+
+  if (!shouldUpdate) {
     return user;
-    // }
   }
+
   const ftSchoolAccountId = accounts["42-school"].providerAccountId;
 
-  const [{ data: extended42Data }, { data: coalitions }] = await Promise.all([
-    get42User(ftSchoolAccountId),
-    get42UserCoalition(ftSchoolAccountId),
-  ]);
+  try {
+    const [{ data: extended42Data }, { data: coalitions }] = await Promise.all([
+      get42User(ftSchoolAccountId),
+      get42UserCoalition(ftSchoolAccountId),
+    ]);
 
-  user = (await prisma.user.update({
-    where: {
-      id: user.id,
-    },
-    data: {
-      extended42Data: {
-        ...extended42Data,
-        coalitions,
-        synced_at: Date.now(),
+    // Clear cache before updating to ensure fresh data on next request
+    clearUserCache(ftSchoolAccountId);
+
+    user = (await prisma.user.update({
+      where: {
+        id: user.id,
       },
-    },
-    include: {
-      accounts: true,
-    },
-  })) as unknown as UserType;
+      data: {
+        extended42Data: {
+          ...extended42Data,
+          coalitions,
+          synced_at: now,
+        },
+      },
+      include: {
+        accounts: true,
+      },
+    })) as unknown as UserType;
+  } catch (error) {
+    console.error("Failed to update user 42 data:", error);
+    // Return existing user data if update fails
+    if (user.extended42Data) {
+      return user;
+    }
+    throw error;
+  }
 
   return user;
 };
