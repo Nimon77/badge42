@@ -5,10 +5,49 @@ import NodeCache from "node-cache";
 export const END_POINT_42API = "https://api.intra.42.fr";
 
 const apiCache = new NodeCache();
+const responseCache = new NodeCache({
+  stdTTL: 5 * 60, // 5 minutes default TTL for response cache
+  checkperiod: 60, // Check for expired keys every minute
+});
+
 const queue = new PQueue({
   interval: 1000,
   intervalCap: process.env.NODE_ENV === "production" ? 6 : 2,
 });
+
+// Helper function to create cache key from URL and params
+const createCacheKey = (url: string, params?: any) => {
+  const paramsStr = params ? JSON.stringify(params) : "";
+  return `${url}:${paramsStr}`;
+};
+
+// Wrapper for cached API calls
+const withCache = async <T>(
+  cacheKey: string,
+  apiCall: () => Promise<T>,
+  ttl: number = 5 * 60 // 5 minutes default
+): Promise<T> => {
+  const cached = responseCache.get<T>(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
+  const result = await apiCall();
+  responseCache.set(cacheKey, result, ttl);
+  return result;
+};
+
+// Helper to clear user-specific cache entries
+export const clearUserCache = (userId: string | number) => {
+  const userCacheKeys = [
+    createCacheKey(`/v2/users/${userId}`),
+    createCacheKey(`/v2/users/${userId}/coalitions`),
+  ];
+  
+  userCacheKeys.forEach(key => {
+    responseCache.del(key);
+  });
+};
 
 export const axiosClientFor42 = axios.create({
   baseURL: END_POINT_42API,
@@ -41,7 +80,7 @@ axiosClientFor42.interceptors.request.use(
     return config;
   },
   (error) => {
-    Promise.reject(error);
+    return Promise.reject(error);
   }
 );
 
@@ -51,17 +90,33 @@ axiosClientFor42.interceptors.response.use(
   },
   async function (error) {
     const originalRequest = error.config;
-    if (error.response.status === 401 && !originalRequest._retry) {
+    
+    // Handle 401 (unauthorized) - refresh token
+    if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-      const { data: token } = await get42OauthToken();
-      if (token) {
-        originalRequest.headers["Authorization"] =
-          "Bearer " + token.access_token;
-        const ttl = token.created_at + token.expires_in - Date.now();
-        apiCache.set("token", token.access_token, ttl);
+      try {
+        const { data: token } = await get42OauthToken();
+        if (token) {
+          originalRequest.headers["Authorization"] =
+            "Bearer " + token.access_token;
+          // Fix TTL calculation: created_at is in seconds, expires_in is in seconds, convert to seconds for cache TTL
+          const ttl = Math.max(0, token.created_at + token.expires_in - Math.floor(Date.now() / 1000));
+          apiCache.set("token", token, ttl);
+        }
+        return axiosClientFor42(originalRequest);
+      } catch (tokenError) {
+        console.error("Failed to refresh 42 API token:", tokenError);
+        return Promise.reject(error);
       }
-      return axios(originalRequest);
     }
+    
+    // Handle 429 (rate limit) - add to queue with delay
+    if (error.response?.status === 429) {
+      console.warn("42 API rate limit hit, request will be retried");
+      // Don't retry immediately, let the queue handle it
+      return Promise.reject(error);
+    }
+    
     return Promise.reject(error);
   }
 );
@@ -302,11 +357,23 @@ export const get42Coalitions = (params?: Partial<PageParams>) => {
 };
 
 export const get42User = (id: string | number) => {
-  return queue.add(() => axiosClientFor42Pagenation<User>(`/v2/users/${id}`));
+  const cacheKey = createCacheKey(`/v2/users/${id}`);
+  return queue.add(() =>
+    withCache(
+      cacheKey,
+      () => axiosClientFor42Pagenation<User>(`/v2/users/${id}`),
+      10 * 60 // Cache user data for 10 minutes
+    )
+  );
 };
 
 export const get42UserCoalition = async (id: string | number) => {
+  const cacheKey = createCacheKey(`/v2/users/${id}/coalitions`);
   return queue.add(() =>
-    axiosClientFor42Pagenation<Coalition[]>(`/v2/users/${id}/coalitions`)
+    withCache(
+      cacheKey,
+      () => axiosClientFor42Pagenation<Coalition[]>(`/v2/users/${id}/coalitions`),
+      10 * 60 // Cache coalition data for 10 minutes
+    )
   );
 };

@@ -1,4 +1,4 @@
-import type { PrismaClient, Prisma } from "@prisma/client";
+import type { PrismaClient } from "@prisma/client";
 import type { Adapter } from "next-auth/adapters";
 
 export function PrismaAdapter(p: PrismaClient): Adapter {
@@ -70,7 +70,7 @@ export function PrismaAdapter(p: PrismaClient): Adapter {
       } catch (error) {
         // If token already used/deleted, just return null
         // https://www.prisma.io/docs/reference/api-reference/error-reference#p2025
-        if ((error as Prisma.PrismaClientKnownRequestError).code === "P2025")
+        if ((error as any)?.code === "P2025")
           return null;
         throw error;
       }

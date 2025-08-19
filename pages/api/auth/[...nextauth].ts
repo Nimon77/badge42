@@ -29,6 +29,10 @@ export default NextAuth({
       return session;
     },
     jwt: async ({ user, token, account, profile }) => {
+      // Add user ID to token for better session management
+      if (user) {
+        token.userId = user.id;
+      }
       return token;
     },
   },
