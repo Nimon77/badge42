@@ -1,11 +1,12 @@
 import React from "react";
 import { css, keyframes, Global } from "@emotion/react";
 
-export type ContainerProps = {
+export interface ContainerProps {
   color: string;
   cover_url: string;
   height: number;
-};
+  children: React.ReactNode;
+}
 
 const Container: React.FC<ContainerProps> = ({
   children,

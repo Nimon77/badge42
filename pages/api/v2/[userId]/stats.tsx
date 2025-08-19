@@ -13,7 +13,7 @@ import Config from "../../../../next.config"
 // 12hour
 const EXPIRE_TIME = 12 * 60 * 60;
 
-const BASE_URL = Config.env.base_url;
+const BASE_URL = Config.env?.base_url || 'https://badge.nimon.fr';
 
 class FTAccountNotLinked extends Error {
   constructor() {

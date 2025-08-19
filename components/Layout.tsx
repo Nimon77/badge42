@@ -1,7 +1,9 @@
 import React from "react";
 import Nav from "./Nav";
 
-export type LayoutProps = {};
+export interface LayoutProps {
+  children: React.ReactNode;
+}
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
